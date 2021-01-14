@@ -1,13 +1,13 @@
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 public class Result {
 
     int numberOfSolutions;
-    List<List<Integer>> combinations;
+    Collection<Collection<Integer>> combinations;
     int waste;
 
-    public Result(int numberOfSolutions, List<List<Integer>> combinations, int waste) {
+    public Result(int numberOfSolutions, Collection<Collection<Integer>> combinations, int waste) {
         this.numberOfSolutions = numberOfSolutions;
         this.combinations = combinations;
         this.waste = waste;
@@ -21,6 +21,6 @@ public class Result {
                                 .map(i -> Integer.toString(i))
                                 .collect(Collectors.joining(" ")))
                         .collect(Collectors.joining("\n")) + "\n" +
-                "Waste=" + 0;
+                "Waste=" + waste;
     }
 }
