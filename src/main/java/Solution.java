@@ -1,5 +1,7 @@
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class Solution {
 
@@ -33,18 +35,16 @@ class Solution {
 
         //Filling up the map
         //Increasing the number of machines with each step
-        for (int numberOfMachines = 1; numberOfMachines <= machines.size(); numberOfMachines++) {
+        IntStream.rangeClosed(1, machines.size()).forEach(curNumberOfMachines -> {
             //Calculating for each possible intermediate sum
-            //TODO if the input list is sorted by performance, this loop can be significantly reduced,
-            // since there would be no need to recalculate previous intermediate sums.
-            for (int intermediateSum = 1; intermediateSum <= limit; intermediateSum++) {
-                Set<Set<Machine>> combinationsThatGiveRequiredSum = new HashSet<>();
-                //Calculating for each machine
-                for (int i = 0; i < numberOfMachines; i++) {
+            IntStream.rangeClosed(0, limit).forEach(intermediateSum -> {
+                Set<Set<Machine>> combinationsThatGiveRequiredSum = ConcurrentHashMap.newKeySet();
+
+                //Calculating for each machine in the current range of machines
+                //Parallel processing demonstrates improved performance here
+                machines.subList(0, curNumberOfMachines).parallelStream().forEach(curMachine -> {
                     Set<Set<Machine>> combinationsWithGivenNumberOfMachines = new HashSet<>();
 
-                    //TODO relying on indexing in the list currently, which is fragile
-                    Machine curMachine = machines.get(i);
                     if (!minWasteOutperformingPerformance.isPresent() || curMachine.performance <= minWasteOutperformingPerformance.get()) {
                         int diffToFill = intermediateSum - curMachine.performance;
                         //Current machine is a good combination itself
@@ -64,7 +64,7 @@ class Solution {
                                 .filter(cur -> !combinationsThatGiveRequiredSum.contains(cur))
                                 .forEach(cur -> combinationsThatGiveRequiredSum.addAll(combinationsWithGivenNumberOfMachines));
                     }
-                }
+                });
 
                 //Storing new combinations for current intermediate sum to the map
                 sumToCombinationsOfMachineIndexes.merge(intermediateSum,
@@ -73,8 +73,8 @@ class Solution {
                             existingCombinations.addAll(newCombinations);
                             return existingCombinations;
                         });
-            }
-        }
+            });
+        });
 
         //Only the combinations for required sum are returned, intermediate results are ignored
         //If none found, pick the outperforming one with minimum waste
@@ -95,6 +95,7 @@ class Solution {
         for (int i = 0; i < machines.length; i++) {
             machinesList.add(new Machine(i, machines[i]));
         }
+
         return machinesList;
     }
 

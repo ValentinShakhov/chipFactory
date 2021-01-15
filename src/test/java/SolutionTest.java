@@ -69,10 +69,10 @@ public class SolutionTest {
 
     //@Test //Uncomment to run
     public void testLongRunning() {
-        Integer[] machines = {1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6};
+        Integer[] machines = {1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6, 1, 2, 4, 10, 5, 6};
         Result result = Solution.solve(machines, 11);
 
-        assertEquals(21735, result.numberOfSolutions);
+        assertEquals(51280, result.numberOfSolutions);
         assertEquals(0, result.waste);
     }
 }
