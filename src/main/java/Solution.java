@@ -35,12 +35,15 @@ class Solution {
         //Increasing the number of machines with each step
         for (int numberOfMachines = 1; numberOfMachines <= machines.size(); numberOfMachines++) {
             //Calculating for each possible intermediate sum
+            //TODO if the input list is sorted by performance, this loop can be significantly reduced,
+            // since there would be no need to recalculate previous intermediate sums.
             for (int intermediateSum = 1; intermediateSum <= limit; intermediateSum++) {
                 Set<Set<Machine>> combinationsThatGiveRequiredSum = new HashSet<>();
                 //Calculating for each machine
                 for (int i = 0; i < numberOfMachines; i++) {
                     Set<Set<Machine>> combinationsWithGivenNumberOfMachines = new HashSet<>();
 
+                    //TODO relying on indexing in the list currently, which is fragile
                     Machine curMachine = machines.get(i);
                     if (!minWasteOutperformingPerformance.isPresent() || curMachine.performance <= minWasteOutperformingPerformance.get()) {
                         int diffToFill = intermediateSum - curMachine.performance;
