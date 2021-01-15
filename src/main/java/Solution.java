@@ -14,7 +14,8 @@ class Solution {
             return new Result(0, Collections.emptySet(), 0);
         }
 
-        Set<Set<Machine>> combinations = getCombinations(machines, limit);
+        ArrayList<Machine> machinesList = mapToMachines(machines);
+        Set<Set<Machine>> combinations = getCombinations(machinesList, limit);
 
         if (combinations == null) {
             return new Result(0, Collections.emptySet(), 0);
@@ -23,16 +24,16 @@ class Solution {
         return buildMinWasteResult(limit, combinations);
     }
 
-    private static Set<Set<Machine>> getCombinations(Integer[] machines, int limit) {
+    private static Set<Set<Machine>> getCombinations(ArrayList<Machine> machines, int limit) {
         //Map containing every intermediate sum with its possible combinations (to avoid extra traversals)
         Map<Integer, Set<Set<Machine>>> sumToCombinationsOfMachineIndexes = new HashMap<>();
 
         //Used to filter out outperforming machines with too high waste
-        Optional<Integer> minWasteOutperformingPerformance = Arrays.stream(machines).sorted().filter(m -> m > limit).findFirst();
+        Optional<Integer> minWasteOutperformingPerformance = getMinWasteOutperformingPerformance(machines, limit);
 
         //Filling up the map
         //Increasing the number of machines with each step
-        for (int numberOfMachines = 1; numberOfMachines <= machines.length; numberOfMachines++) {
+        for (int numberOfMachines = 1; numberOfMachines <= machines.size(); numberOfMachines++) {
             //Calculating for each possible intermediate sum
             for (int intermediateSum = 1; intermediateSum <= limit; intermediateSum++) {
                 Set<Set<Machine>> combinationsThatGiveRequiredSum = new HashSet<>();
@@ -40,7 +41,7 @@ class Solution {
                 for (int i = 0; i < numberOfMachines; i++) {
                     Set<Set<Machine>> combinationsWithGivenNumberOfMachines = new HashSet<>();
 
-                    Machine curMachine = new Machine(i, machines[i]);
+                    Machine curMachine = machines.get(i);
                     if (!minWasteOutperformingPerformance.isPresent() || curMachine.performance <= minWasteOutperformingPerformance.get()) {
                         int diffToFill = intermediateSum - curMachine.performance;
                         //Current machine is a good combination itself
@@ -76,6 +77,22 @@ class Solution {
         //If none found, pick the outperforming one with minimum waste
         Set<Set<Machine>> combinations = sumToCombinationsOfMachineIndexes.get(limit);
         return combinations.isEmpty() ? getOutperformingCombinationWithMinWaste(machines, limit) : combinations;
+    }
+
+    private static Optional<Integer> getMinWasteOutperformingPerformance(ArrayList<Machine> machines, int limit) {
+        return machines.stream()
+                .sorted(Comparator.comparingInt(m -> m.performance))
+                .filter(m -> m.performance > limit)
+                .map(m -> m.performance)
+                .findFirst();
+    }
+
+    private static ArrayList<Machine> mapToMachines(Integer[] machines) {
+        ArrayList<Machine> machinesList = new ArrayList<>();
+        for (int i = 0; i < machines.length; i++) {
+            machinesList.add(new Machine(i, machines[i]));
+        }
+        return machinesList;
     }
 
     private static Set<Set<Machine>> findExistingCombinationsToFillTheDiffWithPossibleWaste(Map<Integer, Set<Set<Machine>>> sumToCombinationsOfMachineIndexes, int diffToFill) {
@@ -140,22 +157,23 @@ class Solution {
         return new Result(combinationsWithLeastWaste.size(), mapToResultCombinations(combinationsWithLeastWaste), minWaste);
     }
 
-    private static Set<Set<Machine>> getOutperformingCombinationWithMinWaste(Integer[] machines, int limit) {
+    private static Set<Set<Machine>> getOutperformingCombinationWithMinWaste(ArrayList<Machine> machines, int limit) {
         Set<Set<Machine>> result = new HashSet<>();
-        List<Integer> machinesAsList = Arrays.asList(machines);
-        machinesAsList.sort(Comparator.naturalOrder());
+        List<Machine> internalMachinesList = new ArrayList<>(machines);
+        internalMachinesList.sort(Comparator.comparingInt(m -> m.performance));
 
-        machinesAsList.stream()
-                .filter(m -> m > limit)
+        internalMachinesList.stream()
+                .filter(m -> m.performance > limit)
+                .map(m -> m.performance)
                 .findFirst()
                 .ifPresent(minWasteOutperformingMachinePerformance -> {
-                    for (int i = 0; i < machines.length; i++) {
-                        if (machines[i].equals(minWasteOutperformingMachinePerformance)) {
-                            Set<Machine> singleMachineCombination = new HashSet<>();
-                            singleMachineCombination.add(new Machine(i, minWasteOutperformingMachinePerformance));
-                            result.add(singleMachineCombination);
-                        }
-                    }
+                    internalMachinesList.stream()
+                            .filter(m -> m.performance == minWasteOutperformingMachinePerformance)
+                            .forEach(m -> {
+                                Set<Machine> singleMachineCombination = new HashSet<>();
+                                singleMachineCombination.add(m);
+                                result.add(singleMachineCombination);
+                            });
                 });
 
         return result;
